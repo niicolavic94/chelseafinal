@@ -1,0 +1,1 @@
+SELECT * FROM chelsea_club.users;
