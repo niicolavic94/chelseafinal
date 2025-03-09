@@ -385,56 +385,58 @@ const calendrier = [
 ];
 
 
-
-
-
 function trouverProchainMatch(calendrier) {
    const maintenant = new Date();
-   return calendrier.find(match => new Date(match.DateUtc) > maintenant);
+   console.log("Date actuelle :", maintenant);
+   const prochainMatch = calendrier.find(match => new Date(match.DateUtc) > maintenant);
+   console.log("Prochain match trouvé :", prochainMatch);
+   return prochainMatch;
 }
 
 function afficherProchainMatch() {
-    const prochainMatch = trouverProchainMatch(calendrier);
-    const prochainMatchDiv = document.getElementById("prochain-match");
-    prochainMatchDiv.innerText = ""; // Vider le contenu
+   const prochainMatch = trouverProchainMatch(calendrier);
+   const prochainMatchDiv = document.getElementById("prochain-match");
+   console.log("Div prochain match :", prochainMatchDiv);
 
-    if (prochainMatch) {
-        const card = document.createElement("div");
-        card.className = "card prochain-match"; // Assurez-vous que la classe est appliquée correctement
-        const cardBody = document.createElement("div");
-        cardBody.className = "card-body";
-        
-        const title = document.createElement("h5"); // Utiliser un h5 pour le titre
-        title.className = "card-title";
-        title.innerText = "Prochain Match";
-        
-        const matchInfo = document.createElement("p");
-        matchInfo.innerText = `${prochainMatch.HomeTeam} vs ${prochainMatch.AwayTeam}`;
-        
-        const location = document.createElement("p");
-        location.innerText = `Lieu: ${prochainMatch.Location}`;
-        
-        const date = document.createElement("p");
-        date.innerText = `Date: ${new Date(prochainMatch.DateUtc).toLocaleString('fr-FR', { timeZone: 'UTC' })}`;
-        
-        // Ajouter les éléments au corps de la carte
-        cardBody.appendChild(title);
-        cardBody.appendChild(matchInfo);
-        cardBody.appendChild(location);
-        cardBody.appendChild(date);
-        
-        // Ajouter le corps de la carte à la carte
-        card.appendChild(cardBody);
-        
-        // Ajouter la carte au conteneur du prochain match
-        prochainMatchDiv.appendChild(card);
-    } else {
-        prochainMatchDiv.innerText = "Aucun match à venir";
-    }
+   if (prochainMatchDiv) {
+       prochainMatchDiv.innerText = ""; // Utiliser innerText pour vider le contenu
+
+       if (prochainMatch) {
+           const card = document.createElement("div");
+           card.className = "card prochain-match"; // Classe pour le prochain match
+           const cardBody = document.createElement("div");
+           cardBody.className = "card-body";
+
+           const title = document.createElement("h5");
+           title.className = "card-title";
+           title.innerText = "Prochain Match";
+
+           const matchInfo = document.createElement("p");
+           matchInfo.innerText = `${prochainMatch.HomeTeam} vs ${prochainMatch.AwayTeam}`;
+
+           const location = document.createElement("p");
+           location.innerText = `Lieu: ${prochainMatch.Location}`;
+
+           const date = document.createElement("p");
+           date.innerText = `Date: ${new Date(prochainMatch.DateUtc).toLocaleString('fr-FR', { timeZone: 'UTC' })}`;
+
+           cardBody.appendChild(title);
+           cardBody.appendChild(matchInfo);
+           cardBody.appendChild(location);
+           cardBody.appendChild(date);
+           card.appendChild(cardBody);
+           prochainMatchDiv.appendChild(card);
+       } else {
+           prochainMatchDiv.innerText = "Aucun match à venir";
+       }
+   } else {
+       console.error("L'élément avec l'ID 'prochain-match' n'existe pas dans le DOM.");
+   }
 }
 
-// Appeler la fonction pour afficher le prochain match
-afficherProchainMatch();
+// Assurez-vous que le DOM est complètement chargé avant d'appeler la fonction
+window.onload = afficherProchainMatch;
+
 
 
 /*  const isLoggedIn = <?php echo json_encode(isset($_SESSION['user'])); ?>; // Passer la valeur de connexion à JavaScript */

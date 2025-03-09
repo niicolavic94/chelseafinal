@@ -1,88 +1,96 @@
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-import { getDatabase, ref, get, set } from "firebase/database";
+// Importation des modules Firebase via CDN
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
+import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-database.js";
 
-// Your web app's Firebase configuration
+// Configuration de Firebase
 const firebaseConfig = {
-  apiKey: "AIzaSyARjvBDXJ68ArNd1UGwV1Xu3rwUyYYISNM",
-  authDomain: "quizz-f73b5.firebaseapp.com",
-  projectId: "quizz-f73b5",
-  storageBucket: "quizz-f73b5.firebasestorage.app",
-  messagingSenderId: "139112130782",
-  appId: "1:139112130782:web:eaf4ecf3df4d1010c3fa4f",
-  measurementId: "G-SVF20BSW89"
+  apiKey: "AIzaSyCsWNTt9qZQZ1KINRP0ZNQG-sgV00wQoi8",
+  authDomain: "pronostics-3d137.firebaseapp.com",
+  databaseURL: "https://pronostics-3d137-default-rtdb.firebaseio.com",
+  projectId: "pronostics-3d137",
+  storageBucket: "pronostics-3d137.firebasestorage.app",
+  messagingSenderId: "223723500693",
+  appId: "1:223723500693:web:b4150cfb8cd086f266979c",
+  measurementId: "G-GNT96ZZFLM"
 };
 
-// Initialize Firebase
+// Initialisation de l'application Firebase
 const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
 const database = getDatabase(app);
 
-let score = 0;
-let currentQuestionIndex = 0;
-let questions = [];
+// Référence au nœud "MATCHS"
+const matchesRef = ref(database, 'MATCHS');
 
-// Fetch questions from Firebase
-const questionsRef = ref(database, 'questions');
-get(questionsRef).then((snapshot) => {
-    if (snapshot.exists()) {
-        questions = snapshot.val();
-        displayQuestion();
-    } else {
-        console.log("No data available");
-    }
-}).catch((error) => {
-    console.error("Error fetching questions: ", error);
-});
-
-function displayQuestion() {
-    const questionKey = Object.keys(questions)[currentQuestionIndex];
-    const questionData = questions[questionKey];
-
-    const quizContainer = document.getElementById('quiz-container');
-    quizContainer.innerHTML = `
-        <h2>${questionData.question}</h2>
-        <ul>
-            <li><input type="radio" name="option" value="a"> ${questionData.options.a}</li>
-            <li><input type="radio" name="option" value="b"> ${questionData.options.b}</li>
-            <li><input type="radio" name="option" value="c"> ${questionData.options.c}</li>
-            <li><input type="radio" name="option" value="d"> ${questionData.options.d}</li>
-        </ul>
-    `;
-}
-
-document.getElementById('submit').addEventListener('click', () => {
-    const selectedOption = document.querySelector('input[name="option"]:checked');
-    if (selectedOption) {
-        const questionKey = Object.keys(questions)[currentQuestionIndex];
-        if (selectedOption.value === questions[questionKey].answer) {
-            score++;
-        }
-        currentQuestionIndex++;
-        if (currentQuestionIndex < Object.keys(questions).length) {
-            displayQuestion();
+// Chargement des matchs
+function loadMatches() {
+    onValue(matchesRef, (snapshot) => {
+        const matches = snapshot.val();
+        const selectMatch = document.getElementById('match');
+        if (matches) {
+            selectMatch.innerHTML = '<option value="">Sélectionnez un match</option>';
+            Object.keys(matches).forEach(key => {
+                const match = matches[key];
+                const option = document.createElement('option');
+                option.value = key;
+                option.textContent = match;
+                selectMatch.appendChild(option);
+            });
         } else {
-            displayResult();
+            console.log("Aucun match trouvé.");
         }
-    } else {
-        alert("Veuillez sélectionner une réponse !");
-    }
-});
-
-function displayResult() {
-    const resultContainer = document.getElementById('result');
-    resultContainer.innerHTML = `<h2>Votre score: ${score}</h2>`;
-    
-    // Save score to Firebase
-    const userId = "user" + Date.now(); // Generate a unique user ID
-    const scoresRef = ref(database, 'scores/' + userId);
-    set(scoresRef, {
-        name: "Joueur " + userId,
-        score: score
-    }).then(() => {
-        console.log("Score enregistré avec succès !");
-    }).catch((error) => {
-        console.error("Erreur lors de l'enregistrement du score: ", error);
     });
 }
+
+// Soumettre le pronostic
+document.getElementById('submit').addEventListener('click', () => {
+    const username = document.getElementById('username').value;
+    const selectedMatch = document.getElementById('match').value;
+    const scoreA = document.getElementById('scoreA').value;
+    const scoreB = document.getElementById('scoreB').value;
+
+    if (username && selectedMatch && scoreA !== '' && scoreB !== '') {
+        const predictionsRef = ref(database, `pronostics/${username}_${selectedMatch}`);
+        set(predictionsRef, {
+            username: username,
+            match: selectedMatch,
+            scoreA: scoreA,
+            scoreB: scoreB
+        }).then(() => {
+            alert("Pronostic enregistré avec succès !");
+            displayPronostics();
+        }).catch((error) => {
+            console.error("Erreur lors de l'enregistrement du pronostic: ", error);
+        });
+    } else {
+        alert("Veuillez remplir tous les champs !");
+    }
+});
+
+// Affichage des pronostics
+function displayPronostics() {
+    const pronosticsRef = ref(database, 'pronostics');
+    onValue(pronosticsRef, (snapshot) => {
+        const pronostics = snapshot.val();
+        const tbody = document.getElementById('ranking-body');
+        tbody.innerHTML = '';
+        if (pronostics) {
+            Object.keys(pronostics).forEach(key => {
+                const pronostic = pronostics[key];
+                const tr = document.createElement('tr');
+                const fields = ['username', 'match', 'scoreA', 'scoreB'];
+                fields.forEach(field => {
+                    const td = document.createElement('td');
+                    td.innerText = pronostic[field] !== undefined ? pronostic[field] : "";
+                    tr.appendChild(td);
+                });
+                tbody.appendChild(tr);
+            });
+        }
+    });
+}
+
+// Charger les matchs au démarrage
+loadMatches();
+
+// Afficher les pronostics au démarrage
+displayPronostics();
