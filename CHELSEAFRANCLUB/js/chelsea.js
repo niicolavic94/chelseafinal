@@ -305,8 +305,8 @@ const calendrier = [
         "HomeTeam": "Chelsea",
         "AwayTeam": "Leicester",
         "Group": null,
-        "HomeTeamScore": null,
-        "AwayTeamScore": null
+        "HomeTeamScore": 1,
+        "AwayTeamScore": 0
     },
     {
         "MatchNumber": 273,
